@@ -3,6 +3,20 @@
 
 set -e
 
+# Ensure required utilities are installed
+REQUIRED_UTILS=(whiptail wget awk pct curl)
+MISSING_UTILS=()
+for util in "${REQUIRED_UTILS[@]}"; do
+    if ! command -v "$util" &>/dev/null; then
+        MISSING_UTILS+=("$util")
+    fi
+done
+if [ ${#MISSING_UTILS[@]} -gt 0 ]; then
+    echo "Installing missing utilities: ${MISSING_UTILS[*]}"
+    sudo apt-get update
+    sudo apt-get install -y "${MISSING_UTILS[@]}"
+fi
+
 SCRIPT_NAME="nvidia_manager.sh"
 INSTALL_DIR="/usr/local/bin"
 REPO_URL="https://github.com/sanchitd5/pve-nvidia-manager"

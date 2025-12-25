@@ -5,11 +5,33 @@ trap cleanup EXIT
 
 
 
+
 # ==========================================
 # Proxmox Nvidia LXC Manager
 # Author: Sanchit Dang
 # Version: 1.4
 # ==========================================
+
+# Ensure required utilities are installed before proceeding
+REQUIRED_UTILS=(whiptail wget awk pct curl)
+MISSING_UTILS=()
+for util in "${REQUIRED_UTILS[@]}"; do
+    if ! command -v "$util" &>/dev/null; then
+        MISSING_UTILS+=("$util")
+    fi
+done
+if [ ${#MISSING_UTILS[@]} -gt 0 ]; then
+    echo "The following required utilities are missing: ${MISSING_UTILS[*]}"
+    read -p "Install them now? [Y/n]: " yn
+    yn=${yn:-Y}
+    if [[ "$yn" =~ ^[Yy]$ ]]; then
+        sudo apt-get update
+        sudo apt-get install -y "${MISSING_UTILS[@]}"
+    else
+        echo "Cannot continue without required utilities. Exiting."
+        exit 1
+    fi
+fi
 
 # Persistent log file
 LOGFILE="/var/log/pve-nvidia-manager.log"
