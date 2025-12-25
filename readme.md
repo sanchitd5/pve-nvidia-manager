@@ -7,16 +7,24 @@ A shell script to manage NVIDIA GPU settings and operations on Proxmox VE (PVE) 
 - Designed for use with Proxmox VE
 - Easy to use and modify
 
+
+## Installation
+
+You can install pve-nvidia-manager system-wide using the provided install script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sanchitd5/pve-nvidia-manager/main/install.sh | bash
+```
+
+This will download and install the latest version to `/usr/local/bin`.
+
 ## Usage
 
-1. Make the script executable:
-   ```bash
-   chmod +x nvidia_manager.sh
-   ```
-2. Run the script:
-   ```bash
-   ./nvidia_manager.sh
-   ```
+After installation, simply run:
+
+```bash
+nvidia_manager.sh
+```
 
 ## Requirements
 - Proxmox VE
