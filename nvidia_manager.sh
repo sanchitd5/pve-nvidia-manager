@@ -380,17 +380,33 @@ function handle_lxc_install() {
         return
     fi
 
+    # Ensure the container is running
+    local LXC_STATUS
+    LXC_STATUS=$(pct status "$CTID" | awk '{print $2}')
+    if [[ "$LXC_STATUS" != "running" ]]; then
+        if whiptail --yesno "Container $CTID is not running. Start it now?" 10 60; then
+            run_with_log "Starting LXC $CTID" "pct start $CTID" || return
+        else
+            whiptail --msgbox "Cannot install drivers unless the container is running." 10 60
+            return
+        fi
+    fi
+
     ensure_installer_exists
     run_with_log "LXC: Dependencies" "pct exec $CTID -- bash -c 'dpkg -s build-essential &>/dev/null || (apt-get update && apt-get install -y build-essential)'" || return
+
+    # Ensure /opt exists in the LXC
+    run_with_log "LXC: Ensure /opt" "pct exec $CTID -- mkdir -p /opt" || return
+
     run_with_log "LXC: Push File" "pct push $CTID '$HOST_INSTALLER_PATH' '/tmp/${DRIVER_FILENAME}' && pct exec $CTID -- chmod +x '/tmp/${DRIVER_FILENAME}'" || return
-    
+
     if ! pct exec "$CTID" -- ls /dev/nvidia0 &>/dev/null; then
         whiptail --msgbox "❌ Error: /dev/nvidia0 not found inside $CTID. Reboot container?" 10 60; return
     fi
 
     run_with_log "LXC: Installing" "pct exec $CTID -- '/tmp/${DRIVER_FILENAME}' --no-kernel-module --silent --accept-license" || return
     pct exec "$CTID" -- rm "/tmp/${DRIVER_FILENAME}"
-    
+
     local SMI=$(pct exec "$CTID" -- nvidia-smi --query-gpu=driver_version --format=csv,noheader)
     whiptail --msgbox "✅ Success! Driver $SMI installed in $CTID." 10 60
 }
